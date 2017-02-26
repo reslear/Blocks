@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<meta charset="utf-8">
+<title>BlocksParser</title>
+<link rel="stylesheet" href="blocks-parser.min.css">
+
+
+
+<div class="blog">
+
+    <h1>BlocksParser release</h1>
+    <p>Установка ха-ха</p>
+    <div class="steps">
+        <p class="step">текст</p>
+        <pre><code>Код</code></pre>
+        <p class="step">текст 2</p>
+        <pre><code>Код</code></pre>
+    </div>
+
+    <h1>Заголовок 1</h1>
+    <p><code>пункт 2</code> - Текст текст текст текст. Текст текст текст текст текст текст текст текст текст текст.Текст текст текст текст.</p>
+
+    <pre><code>привет</code></pre>
+
+    обычный текст
+
+    <ul>
+        <li>пункт 1</li>
+        <li><code>пункт 2</code> - это пункт 2</li>
+        <li>
+            <h2>v2.0 - super</h2>
+            <ul>
+                <li>пункт 1</li>
+                <li><code>пункт 2</code> - это пункт 2</li>
+                <li>пункт 3</li>
+            </ul>
+        </li>
+    </ul>
+
+    <hr />
+    <small>
+        (c) 2016 Korchevskiy Evgeniy (aka ReSLeaR-)<br>
+        <a href="https://vk.com/reslear">vk.com/reslear</a> | <a href="http://upost.su">upost.su</a> | <a href="https://github.com/reslear">github.com/reslear</a>
+    </small>
+    <hr />
+    <br /><br />
+
+
+</div>
+
+<div class="btns" >
+    <button id="save" type="button" title="Созранить результат (Обратный парсинг)">Сохранить</button>
+    <button id="render" type="button" title="Заново сгенерировать весь проект">Заново</button>
+</div>
+
+<script src="BlocksParser.js"></script>
+<script>
+(function(){
+    var myBlock = new BlocksParser('.blog');
+
+    var save = document.querySelector('#save');
+    var render = document.querySelector('#render');
+
+    save.onclick = function(){
+        myBlock.compile();
+        this.classList.add('hide');
+        render.classList.remove('hide');
+    }
+
+    render.onclick = function(){
+        myBlock.render();
+        this.classList.add('hide');
+        save.classList.remove('hide');
+    }
+}());
+</script>
