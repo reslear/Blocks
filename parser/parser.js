@@ -23,56 +23,58 @@
     // Constructor
     this.BlocksParser = function(selector) {
 
-        if ( !(this.SELECTOR = selector) || !(this.BLOCK = document.querySelector(this.SELECTOR)) ) {
-            return false;
+        this.SELECTOR = selector;
+        this.BLOCK = document.querySelector(this.SELECTOR);
+
+        this.BACKUP = this.BLOCK.cloneNode(true);
+    };
+
+    // Public
+    BlocksParser.prototype.render = function( isBack, isBackup ) {
+
+        var rendered;
+
+        if( isBackup ) {
+            rendered = this.BACKUP;
+        } else {
+            var node = this.BLOCK.cloneNode(true);
+            rendered = isBack ? _backRender(node) : editableRender(node);
+
+            rendered.classList[isBack ? 'remove' : 'add']('blocks-parser');
         }
 
-        this.render();
+        this.BLOCK.parentNode.replaceChild(rendered, this.BLOCK);
+        this.BLOCK = rendered;
     };
 
     BlocksParser.prototype.get = function() {
-
         return _backRender( this.BLOCK.cloneNode(true) );
     };
 
-    BlocksParser.prototype.render = function( isUpdate ) {
-
-        _render.init(this.BLOCK);
-        this.BLOCK.classList.add('blocks-parser');
-        editableEvents.call(this);
-    };
-
-    BlocksParser.prototype.compile = function() {
-
-        editableEvents.call(this, true);
-        this.BLOCK.classList.remove('blocks-parser');
-        _backRender(this.BLOCK);
+    BlocksParser.prototype.single = function(element, isBack) {
+        var rendered = isBack ? _backRender(element) : editableRender(element);
+        return rendered;
     };
 
     // Private
-    var thisParent = function(el) {
-        return el.parentNode.classList.contains('blocks-parser') ? el : el.parentNode;
-    };
-
     var events = {
         blur: function() {
-            this.classList.remove('bm-focus');
+            //this.classList.remove('bm-focus');
         },
         focus: function() {
-            this.classList.add('bm-focus');
+            //this.classList.add('bm-focus');
         },
-        keydown: function(event) {
+        keydown: function() {
+            var parent = this.parentNode;
+            var parent2 = parent.parentNode;
 
-            var el = thisParent(this);
-/*
-            if ( el.dataset.bmTag && el.dataset.bmTag === 'code' ) {
+            if ( parent && parent.tagName === 'CODE' && parent2 && parent2.tagName === 'PRE' ) {
+                if (event.keyCode !== 9) {return;}
 
-                if (event.keyCode === 9) {
-                    document.execCommand('insertHTML', false, '&#009');
-                    event.preventDefault();
-                }
+                document.execCommand('insertHTML', false, '&#009');
+                event.preventDefault();
             }
-            */
+
         },
         click: function(event) {
 
@@ -84,30 +86,21 @@
         }
     };
 
-    function editableEvents( hasRemove ) {
 
-        var editable = this.BLOCK.querySelectorAll('[contenteditable]');
-
-        [].forEach.call(editable, function(item) {
-
-            for (var key in events) {
-                item[ (hasRemove ? 'remove' : 'add') + 'EventListener'](key, events[key]);
-            }
-
-        });
+    function addEditableEvents(node) {
+        for (var key in events) {
+            node.addEventListener(key, events[key]);
+        }
     }
 
-    // Обратный парсинг  TOD: с clone
 
-    // без клона
+
     var _backRender = function(main) {
 
         var self = {};
 
         self.process = function(node) {
-
             if( node.nodeType === 1 ) {
-
                 var parent = node.parentNode;
 
                 if( node.classList.contains('bm-child') ) {
@@ -115,11 +108,6 @@
                 }
 
                 node.classList.remove('bm-render');
-
-//                if( 'bmRender' in node.dataset) {
-//                    delete node.dataset.bmRender;
-//                }
-
             }
         };
 
@@ -135,65 +123,90 @@
                 self.process(node[i]);
             }
 
-            return parent; //if( isFirst ){ self.process(parent); }
+            return parent;
         };
 
         return self.recursive(main);
     };
 
+    /* Переработанный
+    ------------------------------------------------------------------------ */
+    var ignore_tags = ['BR','HR','IMG'];
 
-    // Функция парсинга элементов
-    var _render = {
+    var editableRender = function(main) {
 
-        recursive: function(item) {
+        var self = {};
 
+        self.clean = function(el) {
+            while (el.firstChild) {
+              el.removeChild(el.firstChild);
+            }
+        };
+
+        self.createChild = function(html) {
             var child = document.createElement('div');
-                child.setAttribute('contenteditable', '');
-                child.classList.add('bm-child');
 
-            if (item.nodeType === 3) {
+            child.setAttribute('contenteditable', '');
+            child.classList.add('bm-child');
 
-                // зацщита от пустых строк
-                if ( !item.textContent.trim().length ) {
+            child.innerHTML = html;
+            addEditableEvents(child);
+
+            return child;
+        };
+
+        self.process = function(node) {
+
+            var child;
+
+            if(node.nodeType === 3 ){
+
+                child = self.createChild(node.textContent);
+                node.parentNode.replaceChild(child, node);
+
+            } else if(node.nodeType === 1 ){
+
+                node.classList.add('bm-render');
+                child = self.createChild(node.innerHTML);
+
+                self.clean(node);
+                node.appendChild(child);
+            }
+        };
+
+        self.validate = function(node) {
+            if(node.nodeType === 3 ){
+
+                // защита от пустых строк у текста
+                if ( !node.textContent.trim().length ) {
                     return false;
                 }
-
-                //child.dataset.bmText = '';
-
-                child.innerHTML = item.textContent;
-                item.parentNode.replaceChild(child, item);
-
-            } else if (item.nodeType === 1) {
+            }else if(node.nodeType === 1 ) {
 
                 // выходим, если уже прорисовали или узел игнорный
-                if ( /*item.dataset.hasOwnProperty('bmRender') ||*/ item.dataset.hasOwnProperty('bmIgnore') || item.tagName === 'BR' || item.tagName === 'HR' ) {
-                    return;
+
+                if ('bmIgnore' in node.dataset || ~ignore_tags.indexOf(node.tagName) ) {
+                    return false;
                 }
+            }
+            return true;
+        };
 
-                if (item.children.length) {
+        self.recursive = function(parent) {
+            var node = parent.childNodes;
 
-                    _render.init(item);
-                } else {
-
-                    child.innerHTML = item.innerHTML;
-                    item.innerHTML = child.outerHTML;
-                }
-
-
-                //item.dataset.bmTag = item.tagName.toLowerCase();
-                item.classList.add('bm-render');
+            for( var i = 0, len = node.length; i < len; i++ ) {
+                if(!self.validate(node[i])){continue;}
+                self[node[i].children && node[i].children.length ? 'recursive' : 'process'](node[i]);
             }
 
-        },
+            return parent;
+        };
 
-        init: function(parent) {
-
-            // начать перебор всех потомков
-            [].forEach.call(parent.childNodes, _render.recursive);
-        }
-
+        return self.recursive(main);
     };
 
+    /* --------------------------------------------------------------------- */
 
     // Private utils fx
     function extend(obj1, obj2) {

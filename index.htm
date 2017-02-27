@@ -44,13 +44,18 @@
     </small>
     <hr />
     <br /><br />
-
-    <div data-bm-ignore class="pane_add"></div>
 </div>
+<div class="pane_add"></div>
 
 <div class="btns" >
+    <br /><br />
     <button id="save" type="button" title="Созранить результат (Обратный парсинг)">Сохранить</button>
-    <button id="render" type="button" title="Заново сгенерировать весь проект">Заново</button>
+    &nbsp;
+    <button id="render" type="button" title="Начать редактирвоание блоков">Редактировать</button>
+    &nbsp;
+    <button id="restore" type="button" title="Восстановить первоначальное состояние">Восстановить</button>
+
+
 </div>
 
 <script src="parser/parser.js"></script>
@@ -59,24 +64,34 @@
 <script>
 (function(){
     var myBlock = new BlocksParser('.blog');
+    var myAdd = new Blocks.Add();
+
+    /* */
+
+
+
+    /* */
+    myBlock.render();
 
     var save = document.querySelector('#save');
     var render = document.querySelector('#render');
+    var restore = document.querySelector('#restore');
 
     save.onclick = function(){
-        myBlock.compile();
-        this.classList.add('hide');
-        render.classList.remove('hide');
+        myBlock.render( true );
     };
-
     render.onclick = function(){
         myBlock.render();
-        this.classList.add('hide');
-        save.classList.remove('hide');
+    };
+    restore.onclick = function(){
+        myBlock.render(true, true);
     };
 
-    var myAdd = new Blocks.Add();
-    myAdd.init('.pane_add');
+    myAdd.init('.pane_add', '.blog', function(html){
+
+        var parsed = myBlock.single(html);
+        return parsed;
+    });
 
 
 }());

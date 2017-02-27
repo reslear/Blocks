@@ -14,11 +14,9 @@
         position:relative; /* для корневого текста*/
     }
     .blocks-parser .bm-render {outline: none;cursor: text;width:100%;}
-    .blocks-parser .bm-focus {box-sizing: border-box;background: #FFFFD6;border-radius:1px;
-
-/*overflow: hidden;*/}
     /* Редактируемый Потомок */
     .blocks-parser .bm-child {cursor: text;outline: none;display: inline;}
+    .blocks-parser .bm-child:focus{background: #FFFFD6;border-radius:1px;}
     .blocks-parser > .bm-child{display: block}
     /*dd*/
     /* Пользовательские стили для скрипта */

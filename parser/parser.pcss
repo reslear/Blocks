@@ -22,19 +22,16 @@
             width:100%;
         }
 
-        .bm-focus {
-            box-sizing: border-box;
-            background: #FFFFD6;
-
-            border-radius:1px;
-            /*overflow: hidden;*/
-        }
-
         /* Редактируемый Потомок */
         .bm-child {
             cursor: text;
             outline: none;
             display: inline;
+
+            &:focus{
+                background: #FFFFD6;
+                border-radius:1px;
+            }
         }
 
         > .bm-child{display: block} /* для корневого текста*/
