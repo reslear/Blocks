@@ -1,7 +1,8 @@
 <!DOCTYPE HTML>
 <meta charset="utf-8">
 <title>BlocksParser</title>
-<link rel="stylesheet" href="blocks-parser.min.css">
+<link rel="stylesheet" href="parser/parser.min.css">
+<link rel="stylesheet" href="add/add.min.css">
 
 
 
@@ -44,7 +45,7 @@
     <hr />
     <br /><br />
 
-
+    <div data-bm-ignore class="pane_add"></div>
 </div>
 
 <div class="btns" >
@@ -52,7 +53,9 @@
     <button id="render" type="button" title="Заново сгенерировать весь проект">Заново</button>
 </div>
 
-<script src="BlocksParser.js"></script>
+<script src="parser/parser.js"></script>
+<script src="add/add.js"></script>
+
 <script>
 (function(){
     var myBlock = new BlocksParser('.blog');
@@ -64,12 +67,17 @@
         myBlock.compile();
         this.classList.add('hide');
         render.classList.remove('hide');
-    }
+    };
 
     render.onclick = function(){
         myBlock.render();
         this.classList.add('hide');
         save.classList.remove('hide');
-    }
+    };
+
+    var myAdd = new Blocks.Add();
+    myAdd.init('.pane_add');
+
+
 }());
 </script>
